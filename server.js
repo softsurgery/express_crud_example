@@ -20,7 +20,7 @@ app.get('/', (req, res) => {
     res.json({"message": "Server is running :D"});
 });
 
-require('./routes/app.routes.js')(app);
+require('./routes/product.routes.js')(app);
 
 let PORT = 8080
 
