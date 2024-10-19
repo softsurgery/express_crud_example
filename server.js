@@ -21,6 +21,7 @@ app.get('/', (req, res) => {
 });
 
 require('./routes/product.routes.js')(app);
+require('./routes/purchase.routes.js')(app);
 
 let PORT = 8080
 
