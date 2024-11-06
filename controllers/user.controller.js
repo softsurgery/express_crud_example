@@ -1,67 +1,70 @@
 const User = require('../models/user.model');
-const jwt = require('jsonwebtoken');
 
-// Sign-up a new user
-const signupUser = async (req, res) => {
+// Create a new user
+const createUser = async (req, res) => {
   try {
     const user = new User(req.body);
     await user.save();
-    const token = await user.generateAuthToken();
-    res.status(201).send({ user, token });
+    res.status(201).send(user);
   } catch (e) {
     res.status(400).send(e);
   }
 };
 
-// Sign-in user
-const signinUser = async (req, res) => {
+// Get a user by ID
+const getUser = async (req, res) => {
   try {
-    const { email, password } = req.body;
-    const user = await User.findByCredentials(email, password);
-    const token = await user.generateAuthToken();
-    res.cookie('auth_token', token, { httpOnly: true });
-    res.status(200).send({ user, token });
-  } catch (e) {
-    res.status(400).send({ error: 'Incorrect Credentials' });
-  }
-};
-
-// Sign-out user (by clearing token)
-const signoutUser = async (req, res) => {
-  try {
-    req.user.tokens = req.user.tokens.filter((token) => {
-      return token.token !== req.token;
-    });
-    await req.user.save();
-    res.clearCookie('auth_token');
-    res.status(200).send({ message: 'Successfully signed out' });
-  } catch (e) {
-    res.status(500).send();
-  }
-};
-
-// Middleware to authenticate user with JWT
-const auth = async (req, res, next) => {
-  try {
-    const token = req.cookies.auth_token;
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findOne({ _id: decoded._id, 'tokens.token': token });
-
+    const user = await User.findById(req.params.id);
     if (!user) {
-      throw new Error();
+      return res.status(404).send({ error: 'User not found' });
+    }
+    res.status(200).send(user);
+  } catch (e) {
+    res.status(500).send(e);
+  }
+};
+
+// Update a user by ID
+const updateUser = async (req, res) => {
+  const updates = Object.keys(req.body);
+  const allowedUpdates = ['name', 'email', 'password']; // specify the fields that can be updated
+  const isValidOperation = updates.every((update) => allowedUpdates.includes(update));
+
+  if (!isValidOperation) {
+    return res.status(400).send({ error: 'Invalid updates!' });
+  }
+
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).send({ error: 'User not found' });
     }
 
-    req.token = token;
-    req.user = user;
-    next();
+    updates.forEach((update) => (user[update] = req.body[update]));
+    await user.save();
+
+    res.status(200).send(user);
   } catch (e) {
-    res.status(401).send({ error: 'Please authenticate.' });
+    res.status(400).send(e);
+  }
+};
+
+// Delete a user by ID
+const deleteUser = async (req, res) => {
+  try {
+    const user = await User.findByIdAndDelete(req.params.id);
+    if (!user) {
+      return res.status(404).send({ error: 'User not found' });
+    }
+    res.status(200).send({ message: 'User deleted successfully', user });
+  } catch (e) {
+    res.status(500).send(e);
   }
 };
 
 module.exports = {
-  signupUser,
-  signinUser,
-  signoutUser,
-  auth
+  createUser,
+  getUser,
+  updateUser,
+  deleteUser
 };

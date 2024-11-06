@@ -1,7 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
-const cookieParser = require('cookie-parser');
 require('dotenv').config();
 
 mongoose.Promise = global.Promise;
@@ -16,7 +15,6 @@ const app = express();
 
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(bodyParser.json());
-app.use(cookieParser());
 
 app.get('/', (req, res) => {
     res.json({"message": "Server is running :D"});
