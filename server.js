@@ -22,9 +22,8 @@ app.get('/', (req, res) => {
 
 require('./routes/user.routes.js')(app);
 require('./routes/note.routes.js')(app);
-
-let PORT = process.env.PORT || 3000
-
+const PORT = process.env.PORT || 3000; // Utilisez 3001 ou un autre port
 app.listen(PORT, () => {
-    console.log(`Server is listening on port ${PORT}`);
+    console.log(`Serveur démarré sur le port ${PORT}`);
 });
+
